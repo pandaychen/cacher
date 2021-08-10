@@ -132,6 +132,7 @@ func (m *SHashmap) Del(key string) bool {
 	return true
 }
 
+//get return a interface{}
 func (m *SHashmap) Get(key string) (interface{}, int, bool) {
 	var (
 		pos  int
@@ -140,9 +141,11 @@ func (m *SHashmap) Get(key string) (interface{}, int, bool) {
 	m.RLock()
 	item, pos = m.GetHashmapItem(key)
 	if item != nil {
+		//already exists
 		m.RUnlock()
 		return item.Value, pos, true
 	} else {
+		//not exists，返回可以写入的位置
 		m.RUnlock()
 		return nil, pos, false
 	}
