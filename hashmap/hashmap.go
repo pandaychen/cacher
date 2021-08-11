@@ -38,7 +38,7 @@ type Hashmap interface {
 type SHashmap struct {
 	//lock
 	sync.RWMutex
-
+	Total     int
 	RowCount  int
 	SlotCount int
 	curCount  int
@@ -52,7 +52,8 @@ func NewSHashmap(total_item_size int) *SHashmap {
 	}
 	hmap.RowCount = SHASHMAP_ROW_COUNT
 	hmap.SlotCount = int(float64(total_item_size)*FIX_FACTOR)/SHASHMAP_ROW_COUNT + 1 //奇数
-	hmap.ItemsPtr = make([]*HashmapItem, hmap.RowCount*hmap.SlotCount)
+	hmap.Total = hmap.RowCount * hmap.SlotCount
+	hmap.ItemsPtr = make([]*HashmapItem, hmap.Total)
 
 	return hmap
 }
@@ -87,7 +88,7 @@ func (m *SHashmap) GetHashmapItem(key string) (*HashmapItem, int) {
 			freeRecordFlag = true
 			continue
 		}
-		if key == curItem.Key {
+		if key == curItem.HKey {
 			//找到key数据
 			pos = j
 			findItem = curItem
@@ -143,7 +144,7 @@ func (m *SHashmap) Get(key string) (interface{}, int, bool) {
 	if item != nil {
 		//already exists
 		m.RUnlock()
-		return item.Value, pos, true
+		return item.HValue, pos, true
 	} else {
 		//not exists，返回可以写入的位置
 		m.RUnlock()
@@ -170,8 +171,8 @@ func (m *SHashmap) Set(key string, value interface{}) bool {
 			return false
 		}
 		m.ItemsPtr[pos] = &HashmapItem{
-			Key:         key,
-			Value:       value,
+			HKey:        key,
+			HValue:      value,
 			LastVisitor: time.Now().Unix(),
 		}
 		m.Unlock()
