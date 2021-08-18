@@ -162,7 +162,7 @@ func (m *SHashmap) Set(key string, value interface{}) bool {
 	item, pos = m.GetHashmapItem(key)
 	if item != nil {
 		//已存在，直接更新
-		item.Value = value
+		item.HValue = value
 		item.LastVisitor = time.Now().Unix()
 		m.Unlock()
 	} else {
